@@ -89,25 +89,25 @@ setTimeout(() => {
 
 /// ❗Promises
 
-const renderCountry = function (data, className = '') {
-  //Building card component
+// const renderCountry = function (data, className = '') {
+//   //Building card component
 
-  const html = `
-  <article class="country ${className}"> 
-   <img class="country__img" src="${data.flag}" />
-   <div class="country__data">
-     <h3 class="country__name">${data.name}</h3>
-     <h4 class="country__region">${data.region}</h4>
-     <p class="country__row"><span>👫</span>${(
-       +data.population / 1000000
-     ).toFixed(1)}</p>
-     <p class="country__row"><span>🗣️</span>${data.languages[0].name}</p>
-     <p class="country__row"><span>💰</span>${data.currencies[0].name}</p>
-   </div>
-   </article>`;
-  countriesContainer.insertAdjacentHTML('beforeend', html);
-  //countriesContainer.style.opacity = 1;
-};
+//   const html = `
+//   <article class="country ${className}">
+//    <img class="country__img" src="${data.flag}" />
+//    <div class="country__data">
+//      <h3 class="country__name">${data.name}</h3>
+//      <h4 class="country__region">${data.region}</h4>
+//      <p class="country__row"><span>👫</span>${(
+//        +data.population / 1000000
+//      ).toFixed(1)}</p>
+//      <p class="country__row"><span>🗣️</span>${data.languages[0].name}</p>
+//      <p class="country__row"><span>💰</span>${data.currencies[0].name}</p>
+//    </div>
+//    </article>`;
+// countriesContainer.insertAdjacentHTML('beforeend', html);
+// countriesContainer.style.opacity = 1;
+// };
 
 // const request = fetch(`https://restcountries.com/v2/name/romania`);
 // console.log(request); // The fetch function immediattely return a promise
@@ -161,7 +161,7 @@ const renderCountry = function (data, className = '') {
 
 const renderError = function (msg) {
   countriesContainer.insertAdjacentText('beforeend', msg);
-  // countriesContainer.style.opacity = 1;
+  countriesContainer.style.opacity = 1;
 };
 // const getCountryData = function (country) {
 //   // Country 1
@@ -270,47 +270,108 @@ const renderError = function (msg) {
 // //❗ We can create ourself a helper function. This helper function will wrap up the fetch the error handling and the conversion to JSON.
 // // In order to make the function generic we dont want to hard code the error message,but we want to pass the message in. And we add a default parameter. // We need to return all of them; like that the function will return a promise
 
-const getJSON = function (url, errorMsg = '') {
-  return fetch(url).then(response => {
-    if (!response.ok) throw new Error(`${errorMsg} (${response.status})`);
+// const getJSON = function (url, errorMsg = '') {
+//   return fetch(url).then(response => {
+//     if (!response.ok) throw new Error(`${errorMsg} (${response.status})`);
 
-    return response.json();
-  });
+//     return response.json();
+//   });
+// };
+
+// const getCountryData = function (country) {
+//   // Country 1
+//   getJSON(`https://restcountries.com/v2/name/${country}`, `Country not found `)
+//     .then(data => {
+//       renderCountry(data[0]);
+
+//       const neighbour = data[0].borders?.[0];
+//       console.log(neighbour);
+
+//       // const neighbour = 'dflsad'; // to get the error
+
+//       if (!neighbour) throw new Error(`No neighbour found `); // when we dont have neighbour
+
+//       //Country 2.
+//       return getJSON(
+//         `https://restcountries.com/v2/alpha/${neighbour}`,
+//         `Country not found`
+//       );
+//     })
+//     .then(data => renderCountry(data, 'neighbour'))
+//     .catch(err => {
+//       console.error(`${err}🔧🔧🔧`);
+//       renderError(`Something  wrong🔧🔧🔧 ${err.message}. Try Again!`);
+//     })
+//     .finally(() => {
+//       countriesContainer.style.opacity = 1;
+//     });
+// };
+
+// btn.addEventListener('click', function () {
+//   getCountryData('romania');
+// });
+
+// getCountryData('australia');
+
+// When we dont have a neighbour. We have to throw a new error to catch that
+
+// 🖍️Chalenge 1.
+//Reverse geocoding
+
+const renderCountry = function (data, className = '') {
+  //Building card component
+
+  const html = `
+  <article class="country ${className}"> 
+   <img class="country__img" src="${data.flag}" />
+   <div class="country__data">
+     <h3 class="country__name">${data.name}</h3>
+     <h4 class="country__region">${data.region}</h4>
+     <h5 class="country__city">${data.capital}</h5>
+     <p class="country__row"><span>👫</span>${(
+       +data.population / 1000000
+     ).toFixed(1)}</p>
+     <p class="country__row"><span>🗣️</span>${data.languages[0].name}</p>
+     <p class="country__row"><span>💰</span>${data.currencies[0].name}</p>
+   </div>
+   </article>`;
+  countriesContainer.insertAdjacentHTML('beforeend', html);
+  countriesContainer.style.opacity = 1;
 };
 
-const getCountryData = function (country) {
-  // Country 1
-  getJSON(`https://restcountries.com/v2/name/${country}`, `Country not found `)
+const whereAmI = function (lat, lng) {
+  fetch(
+    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`
+  )
+    .then(response => {
+      if (!response.ok)
+        throw new Error(`Problem with Geocoding ${response.status}`);
+      return response.json();
+    })
     .then(data => {
+      console.log(data);
+      console.log(`You are in ${data.address.city}, ${data.address.country}`);
+      return fetch(`https://restcountries.com/v2/name/${data.address.country}`);
+    })
+    .then(response => {
+      if (!response.ok) throw new error(`Country not Found ${response.status}`);
+      return response.json();
+    })
+    .then(data => {
+      console.log(data);
       renderCountry(data[0]);
-
-      const neighbour = data[0].borders?.[0];
-      console.log(neighbour);
-
-      // const neighbour = 'dflsad'; // to get the error
-
-      if (!neighbour) throw new Error(`No neighbour found `); // when we dont have neighbour
-
-      //Country 2.
-      return getJSON(
-        `https://restcountries.com/v2/alpha/${neighbour}`,
-        `Country not found`
-      );
     })
-    .then(data => renderCountry(data, 'neighbour'))
-    .catch(err => {
-      console.error(`${err}🔧🔧🔧`);
-      renderError(`Something  wrong🔧🔧🔧 ${err.message}. Try Again!`);
-    })
-    .finally(() => {
-      countriesContainer.style.opacity = 1;
+    .catch(error => {
+      console.error(`Something Wrong ${error.message} 💥`);
     });
 };
 
-btn.addEventListener('click', function () {
-  getCountryData('romania');
+btn.addEventListener('click', function (e) {
+  e.preventDefault();
+  whereAmI(52.508, 13.381);
+  whereAmI(44.439663, 26.096306);
+  whereAmI(9.0765, 7.3986);
 });
-
-getCountryData('australia');
-
-// When we dont have a neighbour. We have to throw a new error to catch that
+//https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}
+//fetch(`https://restcountries.com/v2/name/${country}`);
+//${data.languages[0].name}
