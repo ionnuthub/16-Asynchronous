@@ -375,3 +375,105 @@ btn.addEventListener('click', function (e) {
 //https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}
 //fetch(`https://restcountries.com/v2/name/${country}`);
 //${data.languages[0].name}
+
+//////////////////////////////////////////////////
+
+///
+///
+/////////////
+
+////////////////////////////////////////////////////
+///❗The Event Loop Practice
+// console.log('Test Start'); //Top Level code (code outsaide of any callback)// Executed first
+// setTimeout(() => console.log('0 sec timer'), 0); // Callback code// Executed 4rt
+// Promise.resolve('Resolved promise 1').then(response => console.log(response)); // MicroQueue// executed third
+// console.log('Test end'); // Top level Code// Executed second
+// Promise.resolve('Resolved promise 2').then(response => {
+//   for (let i = 0; i < 1000000000; i++) {} // microtask of the promise
+//   console.log(response);
+// });
+// The implication of the microtask has priority over regular callback it is that , if one of the micro tasks takes long time to run, the timer will actually be delayed and not run after the 0 seconds. It will run after microtask done with it's work.
+// We can't do high precision things using Js timers. (when we are working with promises and timers in the same time).
+
+//////////////////////////////////////////////////////////////////
+///❗Building a Simple Promise (creating our own Promise)
+//
+// We create a new promise using the new Promise() constructor. Promises are kind a special Js object
+// The Promise constructor takes one argument and that it is the executor function().
+// As soon the Promise constructor runs it will automatically execute this executor function that we pass in and as executes this function it will do so by passing two other arguments  and those arguments are the resolve and reject functions.
+// The executor function it is the function wich will contain the asynchronous behaviour that we are trying to handle with the promise. This executor function should produce a result value. The value wich will gone be the future value of the promise.
+
+/// if the random number it is >= 0.5 i want to call the reslove() function. Which now come in to play. if(Math.random() >= 0.5 ) we say we win the lottery; Therefore it means a fullfilled promise and in order to set the promise as fulfilled we use the resolve() function. Bassically just calling the resolve() function will mark this promise as fullfilled promise (which we can say a resolved promise).
+//Now in the resolve() function we pass the fullfiled value of the promise so that later can be consumed with then() method.
+// We handle the resolve of the promise just like other resolved promise with then() method.
+//What ever value we pass in to the resolve() function , is gone be the result result of the promise that it will be available in to then() handler.
+
+// else we mark this promise as rejected, where we call the reject() function . Then in to the reject() function we pass in the error message that later we want to be able in the catch() handler;
+// We have to make sure the promise ends up in one of this states
+
+// lotteryPromise is going to be a promise object at this point and we can call the then() method. And the then() method needs a callback function that it's gone be called with the resolved value of the promise.
+// Then we catch any errors with catch()
+// setting the timer for async operation.
+// In the reject() we create an obj new Error()
+// Using the timer we encapsulate some asynchronous behaviour into this promise.
+// In then() we handle the resolve and log it to the console.
+
+///
+const lotteryPromise = new Promise(function (resolve, reject) {
+  console.log('Lottery draw in proccess 💸');
+  setTimeout(function () {
+    if (Math.random() >= 0.5) {
+      resolve('You win the lottery 💰');
+    } else {
+      reject(new Error('You lost your Money'));
+    }
+  }, 2000);
+});
+
+///Consuming the Promise
+lotteryPromise
+  .then(response => console.log(response))
+  .catch(error => console.log(error));
+
+// Usually in practice we mostly consume promises. We built promises when we wrap old callback based functions into promises. This is a proccess called promisifying
+// Promisifying = It's to convert callback based asynchronous behaviour to promise based.
+
+// ❗Real world Example: Promisifying a simple callback based asynchronous behaviour function
+///❗Pomisifying the set Timeout() function and create a wait function
+// We create a function wait which take a parameter a number of seconds
+// Inside of the function we create and return a new Promise, which encapsulate the async operation. That's also what fetch() function does
+// In this case we don't need the reject() function because it's imposible for timer to fail, and we dont mark the promise as rejected.
+//we set the setTimeout() and in the time out we set the callback function that we want to be called after a certain time which it's resolve in this case
+// In this case we dont need to pass any resolved value into the resolve function() because it's not mandatory
+// We consum the promise wait(3)
+// Then we can handle that with then(). Here in then() our callback function ,we are not going to receive any resolved value. In the callback we could run any code that we wanted to be executed after the seconds we specified in the wait().
+// in then() we have to return a new Promise.  // return wait() // And again we can handle that
+//
+//
+
+const wait = function (seconds) {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, seconds * 1000);
+  });
+};
+
+wait(1)
+  .then(() => {
+    console.log(' 1 second passed');
+    return wait(1);
+  })
+  .then(() => {
+    console.log(' 2 second passed');
+    return wait(1);
+  })
+  .then(() => {
+    console.log(' 3 second passed');
+    return wait(1);
+  })
+  .then(() => console.log('4 seconds passed')) // creates a new promise that will wait for certain amount of seconds which pe pass as arguments, and after this seconds ,it will resolve.
+  .then(() => console.log('5 seconds passed')); // error we have to return the promise
+
+//❗ Creating a fulfilled or rejected promise immediately.
+// We use Promise.resolve() // Which resolve it's static method on the Promise constructor//in resolve() We can pass the resolved value. // Then we handle that with then()
+Promise.resolve('abc').then(x => console.log(x)); // this will resolve immediatelly
+Promise.reject(new Error('Problem!')).catch(x => console.error(x)); // here then() it's not necessary because there will be no resolved value// We can just catch it
